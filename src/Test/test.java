@@ -21,7 +21,7 @@ public class test {
      * @param args
      */
     public static void main(String[] args) {
-        DownloadThread t = new DownloadThread(0, 0, 566, url, saveLocation);
+        DownloadThread t = new DownloadThread(0, 0, 5665, url, saveLocation);
         Thread t1 = new Thread(t);
         t1.start();
     }

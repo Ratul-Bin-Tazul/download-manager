@@ -48,16 +48,18 @@ public class DownloadThread implements Runnable {
     @Override
     public void run() {
         URL url = null;
-
         try {
             url = new URL(downloadLoc);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            url.openConnection();
+            String bytes = "bytes=" + startByte + "-" + endByte;
+            System.out.println(bytes);
+            conn.setRequestProperty("Range", bytes);
+            conn.connect();
 
-            InputStream in = url.openStream();
+            InputStream in = conn.getInputStream();
             FileOutputStream fs = new FileOutputStream(tempDir);
 
-            for(int b = in.read(); b != -1; b = in.read()){
+            for(int b = in.read(), count = 0; count <= endByte && b != -1; b = in.read()){
                 fs.write(b);
             }
 
