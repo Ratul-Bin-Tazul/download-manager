@@ -7,8 +7,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * The download thread to be created by the Main class
+ * The download thread to be created by the DownloadTask class
  * @author Jamius Siam
+ * @see DownloadTask
  */
 public class DownloadThread implements Runnable {
 
@@ -42,7 +43,7 @@ public class DownloadThread implements Runnable {
         this.startByte = startByte;
         this.endByte = endByte;
         this.downloadLoc = downloadLoc;
-        this.tempDir = tempDir;
+        this.tempDir = System.getProperty("user.home") + "/Desktop/temp/";;
     }
 
     @Override
@@ -51,13 +52,11 @@ public class DownloadThread implements Runnable {
         try {
             url = new URL(downloadLoc);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            String bytes = "bytes=" + startByte + "-" + endByte;
-            System.out.println(bytes);
-            conn.setRequestProperty("Range", bytes);
+            conn.setRequestProperty("Range", "bytes=" + startByte + "-" + endByte);
             conn.connect();
 
             InputStream in = conn.getInputStream();
-            FileOutputStream fs = new FileOutputStream(tempDir);
+            FileOutputStream fs = new FileOutputStream(tempDir + threadNo + ".file");
 
             for(int b = in.read(), count = 0; count <= endByte && b != -1; b = in.read()){
                 fs.write(b);
