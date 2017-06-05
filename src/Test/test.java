@@ -4,23 +4,24 @@ package Test;
  * Main class for testing purpose
  * @author Jamius Siam
  */
-public class test {
+public class Test {
 
     /**
      * Use this url to Test out multithreaded download
      */
-    static String url = "https://cmanios.files.wordpress.com/2012/02/abstracto.png";
+    static String url = "http://www.pcfreetime.com/public/FFSetup4.1.0.0.exe";
 
     /**
      *  Use this url to save the file
      */
-    static String saveLocation = System.getProperty("user.home") + "/Desktop/testDownload.png";
+    public static String saveLocation = System.getProperty("user.home") + "/Desktop/temp/";
+
 
     /**
      * The main method for trying out the download System
      * @param args
      */
     public static void main(String[] args) {
-
+        new Thread(new DownloadTask(url, 8)).start();
     }
 }

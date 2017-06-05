@@ -7,27 +7,30 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * The download thread to be created by the DownloadTask class
+ * The DownloadConnectionThread to be created by the DownloadTask class for simultaneous download connection.
  * @author Jamius Siam
  * @see DownloadTask
  */
-public class DownloadThread implements Runnable {
+public class DownloadConnectionThread implements Runnable {
 
 
      // Thread count
     private int threadNo;
 
     // Starting byte of the HTTP Range
-    private int startByte;
+    private long startByte;
 
     // Ending byte of the HTTP Range
-    private int endByte;
+    private long endByte;
 
     // Url to download
     private String downloadLoc;
 
     // Url to temp dir
     private String tempDir;
+
+    // Progress of the current thread
+    private float progess;
 
 
     /**
@@ -38,7 +41,7 @@ public class DownloadThread implements Runnable {
      * @param downloadLoc Url to download
      * @param tempDir Url to temp dir
      */
-    public DownloadThread(int threadNo, int startByte, int endByte, String downloadLoc, String tempDir) {
+    public DownloadConnectionThread(int threadNo, long startByte, long endByte, String downloadLoc, String tempDir) {
         this.threadNo = threadNo;
         this.startByte = startByte;
         this.endByte = endByte;
@@ -56,18 +59,23 @@ public class DownloadThread implements Runnable {
             conn.connect();
 
             InputStream in = conn.getInputStream();
-            FileOutputStream fs = new FileOutputStream(tempDir + threadNo + ".file");
+            FileOutputStream fs = new FileOutputStream(Test.saveLocation + threadNo + ".file");
 
-            for(int b = in.read(), count = 0; count <= endByte && b != -1; b = in.read()){
+            long totalSize = endByte - startByte;
+            for(int b = in.read(), count = 0 ; count <= endByte && b != -1; b = in.read(), count++){
                 fs.write(b);
+                progess = (float) count / (float) totalSize * 100f;
             }
 
-            System.out.println("Download done!\nFrom: " + downloadLoc + "\nTo: " + tempDir);
             fs.close();
         } catch (java.io.IOException e){
             e.printStackTrace();
         } finally {
 
         }
+    }
+
+    public float getProgess(){
+        return progess;
     }
 }
