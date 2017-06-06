@@ -1,28 +1,45 @@
 package Test;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 
 /**
- * Created by Jamius Siam on 05-Jun-17.
+ * This class merges file splits created by the DownloadTask class.
+ *
+ * @see DownloadTask
  */
 public class FileMerger implements Runnable {
 
     // Save location for the file
     private String saveLoc;
 
-    private InputStream[] inputStreams = new InputStream[8];
+    private FileInputStream[] inputStreams;
 
+    private int noOfSplits;
+
+    private String fileName;
 
     /**
      * Constrcutor for FileMerger
-     * @param saveLoc Save location for the file
+     *
+     * @param saveLoc    Save location for the file
+     * @param noOfSplits No of split file. This should be equal to the number of connections made by the DownloadTask thread.
+     * @see DownloadTask
      */
-    public FileMerger(String saveLoc) {
-        this.saveLoc = saveLoc;
+    public FileMerger(String saveLoc, int noOfSplits, String fileName) {
+        this.saveLoc = saveLoc + fileName;
+        this.noOfSplits = noOfSplits;
+        this.fileName = fileName;
+
+        inputStreams = new FileInputStream[noOfSplits];
 
         try {
-            FileOutputStream fs = new FileOutputStream(saveLoc);
+            FileOutputStream fs = new FileOutputStream(this.saveLoc);
+            fs.flush();
+            fs.close();
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -30,18 +47,32 @@ public class FileMerger implements Runnable {
 
     @Override
     public void run() {
-        try {
-            for (int i = 0; i < 8; i++) {
-                File temp = new File(Test.saveLocation + i + ".file");
+        try{
+
+            for (int i = 0; i < noOfSplits; i++) {
+                File temp = new File(Test.saveLocation + fileName + "/" + i + ".file");
                 inputStreams[i] = new FileInputStream(temp);
             }
-
             FileOutputStream fs = new FileOutputStream(saveLoc, true);
 
-            for (int i = 0; i < 8; i++) {
-                for (int j = inputStreams[i].read(); j != -1; j = inputStreams[i].read()) {
-                    fs.write(j);
-                }
+            FileChannel fsOut = fs.getChannel();
+
+            long lastBytePosition = 0;
+
+            for (int i = 0; i < noOfSplits; i++) {
+                FileChannel fsIn = inputStreams[i].getChannel();
+                fsOut.transferFrom(fsIn, lastBytePosition, fsIn.size());
+                lastBytePosition += fsIn.size();
+                fsIn.close();
+            }
+
+            fsOut.close();
+
+            fs.flush();
+            fs.close();
+
+            for (int i = 0; i < noOfSplits; i++) {
+                inputStreams[i].close();
             }
 
         } catch (FileNotFoundException e) {

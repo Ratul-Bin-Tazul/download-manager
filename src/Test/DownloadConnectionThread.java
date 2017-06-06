@@ -1,10 +1,11 @@
 package Test;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * The DownloadConnectionThread to be created by the DownloadTask class for simultaneous download connection.
@@ -27,7 +28,7 @@ public class DownloadConnectionThread implements Runnable {
     private String downloadLoc;
 
     // Url to temp dir
-    private String tempDir;
+    private String fileName;
 
     // Progress of the current thread
     private float progess;
@@ -39,14 +40,19 @@ public class DownloadConnectionThread implements Runnable {
      * @param startByte Starting byte of the HTTP Range
      * @param endByte Ending byte of the HTTP Range
      * @param downloadLoc Url to download
-     * @param tempDir Url to temp dir
+     * @param fileName Url to temp dir
      */
-    public DownloadConnectionThread(int threadNo, long startByte, long endByte, String downloadLoc, String tempDir) {
+    public DownloadConnectionThread(int threadNo, long startByte, long endByte, String downloadLoc, String fileName) {
         this.threadNo = threadNo;
         this.startByte = startByte;
         this.endByte = endByte;
         this.downloadLoc = downloadLoc;
-        this.tempDir = System.getProperty("user.home") + "/Desktop/temp/";;
+
+        File file =  new File(System.getProperty("user.home") + "/Desktop/temp/" + fileName);
+        if(!file.exists())
+            new File(System.getProperty("user.home") + "/Desktop/temp/" + fileName).mkdirs();
+
+        this.fileName = fileName;
     }
 
     @Override
@@ -59,7 +65,7 @@ public class DownloadConnectionThread implements Runnable {
             conn.connect();
 
             InputStream in = conn.getInputStream();
-            FileOutputStream fs = new FileOutputStream(Test.saveLocation + threadNo + ".file");
+            FileOutputStream fs = new FileOutputStream(Test.saveLocation + fileName + "\\" + threadNo + ".file");
 
             long totalSize = endByte - startByte;
             for(int b = in.read(), count = 0 ; count <= endByte && b != -1; b = in.read(), count++){
@@ -67,6 +73,7 @@ public class DownloadConnectionThread implements Runnable {
                 progess = (float) count / (float) totalSize * 100f;
             }
 
+            in.close();
             fs.close();
         } catch (java.io.IOException e){
             e.printStackTrace();
