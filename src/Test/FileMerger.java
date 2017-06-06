@@ -64,16 +64,13 @@ public class FileMerger implements Runnable {
                 fsOut.transferFrom(fsIn, lastBytePosition, fsIn.size());
                 lastBytePosition += fsIn.size();
                 fsIn.close();
+                inputStreams[i].close();
             }
 
             fsOut.close();
 
             fs.flush();
             fs.close();
-
-            for (int i = 0; i < noOfSplits; i++) {
-                inputStreams[i].close();
-            }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
